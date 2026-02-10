@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seven Night At School</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: black;
+      color: white;
+      font-family: 'Courier New', monospace;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    h1 {
+      position: absolute;
+      top: 20px;
+      text-align: center;
+      font-size: 3.5rem;
+      color: black;
+      -webkit-text-stroke: 3px red;
+      text-transform: uppercase;
+      transition: opacity 0.2s ease-in-out;
+    }
+
+    button {
+      background: transparent;
+      border: 2px solid red;
+      color: red;
+      font-size: 1.3rem;
+      padding: 8px 20px;
+      cursor: pointer;
+      text-transform: uppercase;
+      margin: 8px;
+      transition: all 0.3s ease;
+      border-radius: 10px;
+    }
+
+    button:hover {
+      background-color: red;
+      color: black;
+      box-shadow: 0 0 20px red;
+      transform: scale(1.05);
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    #menu, #game, #opis, #nightSelect {
+      display: none;
+      text-align: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    #menu.active, #opis.active, #game.active, #nightSelect.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .doors {
+      display: flex;
+      justify-content: space-around;
+      width: 80%;
+      margin-top: 100px;
+    }
+
+    .door-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .door {
+      width: 220px;
+      height: 180px;
+      border: 2px solid red;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      background-color: #111;
+      transition: background-color 0.3s;
+      margin-bottom: 10px;
+    }
+
+    .door.closed {
+      background-color: red;
+      color: black;
+    }
+
+    .door.flash {
+      background-color: red;
+      color: black;
+      animation: flash 0.5s linear;
+    }
+
+    @keyframes flash {
+      0% { background-color: red; }
+      50% { background-color: black; }
+      100% { background-color: red; }
+    }
+
+    #vent {
+      margin-top: 40px;
+      width: 50%;
+      height: 120px;
+      border: 2px solid red;
+      background-color: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    #time {
+      font-size: 1.8rem;
+      margin-top: 20px;
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="title">Seven Night At School</h1>
+
+  <!-- MENU -->
+  <div id="menu" class="active">
+    <button id="startBtn">Start</button>
+    <button id="opisBtn">Opis Przeciwników</button>
+  </div>
+
+  <!-- WYBÓR NOCY -->
+  <div id="nightSelect">
+    <h2>Wybierz noc</h2>
+    <button id="night1Btn">Noc 1</button>
+    <button id="night2Btn">Noc 2 🔒</button>
+    <button id="night3Btn">Noc 3 🔒</button>
+    <button id="night4Btn">Noc 4 🔒</button>
+    <button id="backToMenu">Powrót</button>
+  </div>
+
+  <!-- OPIS -->
+  <div id="opis">
+    <h2>Opis przeciwników</h2>
+    <p><strong>Filip</strong> — pojawia się po LEWEJ stronie. Kliknij „Zamknij drzwi” po lewej w ciągu 4 sekund.</p>
+    <p><strong>Ksawery</strong> — pojawia się po PRAWEJ stronie. Kliknij „Zamknij drzwi” po prawej w ciągu 4 sekund.</p>
+    <p><strong>Ola</strong> — pojawia się w WENTYLACJI. Kliknij „Zamknij wentylację” w ciągu 4 sekund.</p>
+    <p><strong>Milena</strong> — pojawia się losowo po LEWEJ lub PRAWEJ stronie. Drzwi po tej stronie <u>migają przez 0.5 sekundy</u>, a następnie masz <u>3 sekundy</u> na reakcję.</p>
+    <p><strong>Dawid</strong> — pojawia się po PRAWEJ stronie. Kliknij „Zamknij drzwi” po prawej w ciągu 3 sekund.</p>
+    <p><strong>Oliwier</strong> — pojawia się w WENTYLACJI. Kliknij „Zamknij wentylację” w ciągu 2 sekund.</p>
+    <button id="backMenuFromOpis">Powrót</button>
+  </div>
+
+  <!-- GRA -->
+  <div id="game">
+    <div id="time">Godzina: 12:00</div>
+    <div class="doors">
+      <div class="door-section">
+        <div class="door" id="leftDoor">LEWE DRZWI</div>
+        <button id="leftCloseBtn">Zamknij drzwi</button>
+      </div>
+
+      <div class="door-section">
+        <div class="door" id="rightDoor">PRAWE DRZWI</div>
+        <button id="rightCloseBtn">Zamknij drzwi</button>
+      </div>
+    </div>
+
+    <div id="vent">
+      <div class="door" id="ventText">WENTYLACJA</div>
+      <button id="ventCloseBtn">Zamknij wentylację</button>
+    </div>
+  </div>
+
+<audio id="day1Audio" src="Day1.mp3"></audio>
+
+  <script>
+    const title = document.getElementById("title");
+    const menu = document.getElementById("menu");
+    const opis = document.getElementById("opis");
+    const nightSelect = document.getElementById("nightSelect");
+    const game = document.getElementById("game");
+    const timeDisplay = document.getElementById("time");
+    
+    const day1Audio = document.getElementById("day1Audio");
+
+    const leftDoor = document.getElementById("leftDoor");
+    const rightDoor = document.getElementById("rightDoor");
+    const ventText = document.getElementById("ventText");
+
+    const leftCloseBtn = document.getElementById("leftCloseBtn");
+    const rightCloseBtn = document.getElementById("rightCloseBtn");
+    const ventCloseBtn = document.getElementById("ventCloseBtn");
+
+    const night1Btn = document.getElementById("night1Btn");
+    const night2Btn = document.getElementById("night2Btn");
+    const night3Btn = document.getElementById("night3Btn");
+    const night4Btn = document.getElementById("night4Btn");
+
+    let gameRunning = false;
+    let seconds = 0;
+    let hour = 12;
+    let currentNight = 1;
+    let activeEnemies = [];
+    let enemyTimeouts = {};
+    let timer = null;
+    
+let nightProgress = JSON.parse(localStorage.getItem("nightProgress")) || {
+  night1: false,
+  night2: false,
+  night3: false,
+  night4: false
+};
+
+function updateNightButtons() {
+  night2Btn.disabled = !nightProgress.night1;
+  night3Btn.disabled = !nightProgress.night2;
+  night4Btn.disabled = !nightProgress.night3;
+
+  night2Btn.textContent = nightProgress.night1 ? "Noc 2" : "Noc 2 🔒";
+  night3Btn.textContent = nightProgress.night2 ? "Noc 3" : "Noc 3 🔒";
+  night4Btn.textContent = nightProgress.night3 ? "Noc 4" : "Noc 4 🔒";
+}
+
+    updateNightButtons();
+
+    // miganie tytułu
+    (function blink() {
+      const delay = Math.random() * 2000 + 500;
+      setTimeout(() => {
+        title.style.opacity = title.style.opacity === "0" ? "1" : "0";
+        blink();
+      }, delay);
+    })();
+
+    function showMenu() {
+      day1Audio.pause();
+      day1Audio.currentTime = 0;
+      title.style.display = "block";
+      menu.classList.add("active");
+      opis.classList.remove("active");
+      nightSelect.classList.remove("active");
+      game.classList.remove("active");
+      gameRunning = false;
+      clearInterval(timer);
+      for (let key in enemyTimeouts) clearTimeout(enemyTimeouts[key]);
+      activeEnemies = [];
+    }
+
+    function showNightSelect() {
+      menu.classList.remove("active");
+      nightSelect.classList.add("active");
+    }
+
+function startGame(night) {
+  nightSelect.classList.remove("active");
+  game.classList.add("active");
+  title.style.display = "none";
+  currentNight = night;
+  if (night === 1) {
+    setTimeout(() => {
+      if (gameRunning && currentNight === 1) {
+        day1Audio.currentTime = 0;
+        day1Audio.play();
+      }
+    }, 1000);
+  }
+  runNight();
+}
+
+    function runNight() {
+      gameRunning = true;
+      seconds = 0;
+      hour = 12;
+      activeEnemies = [];
+      resetDoors();
+      timeDisplay.textContent = "Godzina: 12:00";
+
+      timer = setInterval(() => {
+        if (!gameRunning) return;
+        seconds++;
+        if (seconds % 70 === 0) hour++;
+        if (hour > 16) endGame(true);
+        timeDisplay.textContent = "Godzina: " + hour + ":00";
+      }, 1000);
+
+      spawnEnemiesLoop();
+    }
+
+    function resetDoors() {
+      leftDoor.textContent = "LEWE DRZWI";
+      rightDoor.textContent = "PRAWE DRZWI";
+      ventText.textContent = "WENTYLACJA";
+      leftDoor.classList.remove("closed");
+      rightDoor.classList.remove("closed");
+      ventText.classList.remove("closed");
+    }
+
+    function spawnEnemiesLoop() {
+      if (!gameRunning) return;
+
+      const wait = Math.random() * 4000 + 3000; // 3–7s
+      setTimeout(() => {
+        if (!gameRunning) return;
+        if (activeEnemies.length < 3) spawnEnemy();
+        spawnEnemiesLoop();
+      }, wait);
+    }
+
+function spawnEnemy() {
+      const enemies = {
+  1: ["Filip", "Ksawery"],
+  2: ["Filip", "Ksawery", "Ola"],
+  3: ["Filip", "Ksawery", "Ola", "Milena", "Dawid"],
+  4: ["Filip", "Ksawery", "Ola", "Milena", "Dawid", "Oliwier"]
+}[currentNight];
+
+      const available = enemies.filter(e => !activeEnemies.includes(e));
+      if (available.length === 0) return;
+      const enemy = available[Math.floor(Math.random() * available.length)];
+      activeEnemies.push(enemy);
+
+      if (enemy === "Filip") showEnemy(enemy, leftDoor, "LEWE DRZWI", 4000);
+      if (enemy === "Ksawery") showEnemy(enemy, rightDoor, "PRAWE DRZWI", 4000);
+      if (enemy === "Ola") showEnemy(enemy, ventText, "WENTYLACJA", 4000);
+      if (enemy === "Dawid") showEnemy(enemy, rightDoor, "PRAWE DRZWI", 3000);
+      if (enemy === "Milena") spawnMilena();
+      if (enemy === "Oliwier")
+  showEnemy(enemy, ventText, "WENTYLACJA", 2000);
+    }
+
+    function showEnemy(name, door, label, delay) {
+      door.textContent = name.toUpperCase() + "!";
+      enemyTimeouts[name] = setTimeout(() => {
+        if (gameRunning && activeEnemies.includes(name)) endGame(false);
+      }, delay);
+    }
+
+    // specjalna funkcja dla Mileny (migające drzwi)
+    
+function spawnMilena() {
+  activeEnemies.push("Milena");
+
+  const side = Math.random() < 0.5 ? "left" : "right";
+  const door = side === "left" ? leftDoor : rightDoor;
+  const label = side === "left" ? "LEWE DRZWI" : "PRAWE DRZWI";
+
+  door.classList.add("flash");
+
+  setTimeout(() => {
+    door.classList.remove("flash");
+    door.textContent = "MILENA!";
+    enemyTimeouts["Milena"] = setTimeout(() => {
+      if (gameRunning && activeEnemies.includes("Milena")) endGame(false);
+    }, 3000);
+  }, 500);
+}
+
+    function closeDoor(enemy, door, label) {
+      if (!activeEnemies.includes(enemy)) return;
+      clearTimeout(enemyTimeouts[enemy]);
+      delete enemyTimeouts[enemy];
+      activeEnemies = activeEnemies.filter(e => e !== enemy);
+      door.textContent = "ZAMKNIĘTE";
+      door.classList.add("closed");
+      setTimeout(() => {
+        door.textContent = label;
+        door.classList.remove("closed");
+      }, 2000);
+    }
+
+leftCloseBtn.addEventListener("click", () => {
+  if (activeEnemies.includes("Filip"))
+    closeDoor("Filip", leftDoor, "LEWE DRZWI");
+
+  if (activeEnemies.includes("Milena"))
+    closeDoor("Milena", leftDoor, "LEWE DRZWI");
+});
+    rightCloseBtn.addEventListener("click", () => {
+      if (activeEnemies.includes("Ksawery") || activeEnemies.includes("Milena") || activeEnemies.includes("Dawid")) {
+        closeDoor("Ksawery", rightDoor, "PRAWE DRZWI");
+        closeDoor("Dawid", rightDoor, "PRAWE DRZWI");
+        closeDoor("Milena", rightDoor, "PRAWE DRZWI");
+      }
+    });
+    ventCloseBtn.addEventListener("click", () => {
+  closeDoor("Ola", ventText, "WENTYLACJA");
+  closeDoor("Oliwier", ventText, "WENTYLACJA");
+});
+
+
+function endGame(win) {
+  day1Audio.pause();
+  day1Audio.currentTime = 0;
+
+  gameRunning = false;
+  clearInterval(timer);
+      for (let key in enemyTimeouts) clearTimeout(enemyTimeouts[key]);
+      enemyTimeouts = {};
+      activeEnemies = [];
+
+      if (win) {
+        alert("🎉 Przetrwałeś noc!");
+        if (currentNight === 1) nightProgress.night1 = true;
+        if (currentNight === 2) nightProgress.night2 = true;
+        if (currentNight === 3) nightProgress.night3 = true;
+        if (currentNight === 4) nightProgress.night4 = true;
+        localStorage.setItem("nightProgress", JSON.stringify(nightProgress));
+        updateNightButtons();
+      } else {
+        alert("💀 Zostałeś złapany!");
+      }
+      showMenu();
+    }
+
+    // obsługa przycisków
+    document.getElementById("startBtn").addEventListener("click", showNightSelect);
+    document.getElementById("opisBtn").addEventListener("click", () => {
+      menu.classList.remove("active");
+      opis.classList.add("active");
+    });
+    document.getElementById("backMenuFromOpis").addEventListener("click", showMenu);
+    document.getElementById("backToMenu").addEventListener("click", showMenu);
+
+    night1Btn.addEventListener("click", () => startGame(1));
+    night2Btn.addEventListener("click", () => { if (!night2Btn.disabled) startGame(2); });
+    night3Btn.addEventListener("click", () => { if (!night3Btn.disabled) startGame(3); });
+    night4Btn.addEventListener("click", () => { if (!night4Btn.disabled) startGame(4);
+});
+  </script>
+</body>
+</html>
